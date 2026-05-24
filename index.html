@@ -240,9 +240,9 @@
   .bar-track {
     background: #F0ECF8;
     border-radius: 8px;
-    height: 28px;
+    height: 32px;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     margin-bottom: 4px;
   }
   .bar-fill {
@@ -252,11 +252,35 @@
     display: flex;
     align-items: center;
     padding-left: 8px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
   }
   .bar-fill-val {
     font-size: 12px;
     font-weight: 900;
     color: #fff;
+  }
+  .bar-target-line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: 2px;
+    z-index: 2;
+    pointer-events: none;
+  }
+  .bar-target-badge {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 11px;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: 6px;
+    z-index: 3;
+    white-space: nowrap;
+    pointer-events: none;
   }
 
   .bar-tap {
@@ -505,22 +529,26 @@ function renderP1(e, em) {
 
 function renderP2(e, em) {
   const maxC = Math.max(...e.counts);
-  const rows = e.items.map((it,i) => `
+  const rows = e.items.map((it,i) => {
+    const targetPct = Math.round(e.counts[i] / maxC * 100);
+    return `
     <div class="bar-item">
       <div class="bar-emoji">${em[i]}</div>
       <div class="bar-right">
         <div class="bar-meta">
           <span class="bar-name">${it}</span>
-          <span class="bar-target" style="color:${COLS[i]};">→ ${e.counts[i]}</span>
         </div>
         <div class="bar-track">
           <div class="bar-fill" id="bf${i}" style="width:0%;background:${COLS[i]};">
             <span class="bar-fill-val" id="bfv${i}"></span>
           </div>
+          <div class="bar-target-line" style="left:${targetPct}%;background:${COLS[i]};opacity:0.9;"></div>
+          <div class="bar-target-badge" style="left:calc(${targetPct}% + 6px);background:${COL_BG[i]};color:${COL_DARK[i]};">${e.counts[i]}</div>
         </div>
         <div class="bar-tap" id="bt${i}" data-i="${i}">Toca para escribir</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   return `<div class="card">
     <div class="phase-title">📊 Fase 2 — Construye la gráfica</div>
