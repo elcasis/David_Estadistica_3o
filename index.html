@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>¡Juego de Estadística!</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap');
+
+  :root {
+    --bg: #FFF8F0;
+    --card: #FFFFFF;
+    --purple: #7C6FCD;
+    --purple-light: #EDE9FF;
+    --green: #2CB67D;
+    --green-light: #DCFAED;
+    --red: #E84855;
+    --red-light: #FFEAEA;
+    --amber: #F4A527;
+    --amber-light: #FFF3D0;
+    --text: #1A1A2E;
+    --muted: #7A7A9D;
+    --border: #E8E0F0;
+    --shadow: 0 4px 0 0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  #app {
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 12px 12px 24px;
+    min-height: 100vh;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 8px 4px;
+  }
+
+  .score-badge {
+    background: var(--purple);
+    color: #fff;
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    padding: 6px 16px;
+    border-radius: 30px;
+    box-shadow: var(--shadow) #5448A3;
+    letter-spacing: 0.5px;
+  }
+
+  .ex-info {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  /* PROGRESS */
+  .phases {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .ph {
+    flex: 1;
+    height: 8px;
+    border-radius: 10px;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .ph.active { background: var(--purple); }
+  .ph.done   { background: var(--green); }
+  .ph.fail   { background: var(--red); }
+
+  /* CARD */
+  .card {
+    background: var(--card);
+    border-radius: 20px;
+    border: 2px solid var(--border);
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 4px 0 0 #E0D6EE;
+  }
+
+  .phase-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 20px;
+    color: var(--purple);
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+  }
+
+  .phase-desc {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    line-height: 1.5;
+    font-weight: 600;
+  }
+
+  /* CHIPS */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 800;
+    border: 2px solid;
+  }
+
+  /* NUMPAD */
+  .np-display {
+    background: var(--purple-light);
+    border: 2px solid var(--purple);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 32px;
+    color: var(--purple);
+    text-align: right;
+    min-height: 60px;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+  }
+
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .nk {
+    height: 58px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 24px;
+    color: var(--text);
+    background: #fff;
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 0 0 #D8D0E8;
+    transition: transform 0.08s, box-shadow 0.08s;
+    touch-action: manipulation;
+    user-select: none;
+  }
+  .nk:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 0 #D8D0E8;
+  }
+  .nk.del { font-size: 18px; color: var(--red); border-color: #FFCCCF; box-shadow: 0 3px 0 0 #FFCCCF; }
+  .nk.zero { grid-column: span 2; }
+
+  /* BIG BUTTONS */
+  .btn {
+    width: 100%;
+    padding: 16px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 20px;
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: transform 0.08s, box-shadow 0.08s;
+    display: block;
+    text-align: center;
+    letter-spacing: 0.5px;
+    margin-top: 8px;
+  }
+  .btn:active { transform: translateY(3px); }
+  .btn-check {
+    background: var(--purple);
+    color: #fff;
+    box-shadow: var(--shadow) #5448A3;
+  }
+  .btn-check:active { box-shadow: 0 1px 0 0 #5448A3; }
+  .btn-check:disabled { opacity: 0.45; cursor: default; box-shadow: none; }
+  .btn-next {
+    background: var(--green);
+    color: #fff;
+    box-shadow: var(--shadow) #1A8A58;
+    display: none;
+  }
+  .btn-next:active { box-shadow: 0 1px 0 0 #1A8A58; }
+
+  /* FEEDBACK */
+  .fbk {
+    font-size: 14px;
+    font-weight: 800;
+    padding: 10px 14px;
+    border-radius: 12px;
+    margin-top: 8px;
+    display: none;
+    line-height: 1.4;
+  }
+  .fbk.ok { background: var(--green-light); color: #1A6644; display: block; }
+  .fbk.ko { background: var(--red-light);   color: #9B1B24; display: block; }
+
+  /* BAR CHART */
+  .bar-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+
+  .bar-item { display: flex; align-items: center; gap: 8px; }
+
+  .bar-emoji { font-size: 22px; width: 30px; text-align: center; flex-shrink: 0; }
+
+  .bar-right { flex: 1; }
+
+  .bar-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+  }
+  .bar-name { font-size: 12px; font-weight: 800; color: var(--muted); }
+  .bar-target { font-size: 13px; font-weight: 900; }
+
+  .bar-track {
+    background: #F0ECF8;
+    border-radius: 8px;
+    height: 28px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 4px;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.3s;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+  }
+  .bar-fill-val {
+    font-size: 12px;
+    font-weight: 900;
+    color: #fff;
+  }
+
+  .bar-tap {
+    background: #F0ECF8;
+    border: 2px dashed #C5B8E8;
+    border-radius: 10px;
+    padding: 7px 12px;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--muted);
+    cursor: pointer;
+    text-align: center;
+    touch-action: manipulation;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .bar-tap.active-sel {
+    border-color: var(--purple);
+    background: var(--purple-light);
+    color: var(--purple);
+  }
+  .bar-tap.correct { border-color: var(--green); background: var(--green-light); color: #1A6644; border-style: solid; }
+
+  .bar-np-header {
+    font-family: 'Fredoka One', cursive;
+    font-size: 15px;
+    color: var(--purple);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  /* PHASE 3 */
+  .sum-header {
+    background: linear-gradient(135deg, #F5F0FF 0%, #FFF8F0 100%);
+    border-radius: 14px;
+    padding: 12px;
+    margin-bottom: 12px;
+    border: 2px solid var(--border);
+  }
+  .sum-total {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--muted);
+    border-top: 1.5px solid var(--border);
+    padding-top: 8px;
+    margin-top: 8px;
+  }
+  .sum-total span {
+    font-family: 'Fredoka One', cursive;
+    font-size: 18px;
+    color: var(--text);
+  }
+
+  .frac-block {
+    padding: 12px;
+    border-radius: 14px;
+    border: 2px solid;
+    margin-bottom: 10px;
+  }
+  .frac-q {
+    font-size: 15px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .frac-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .frac-field {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .frac-box {
+    width: 72px;
+    height: 52px;
+    border: 2.5px solid;
+    border-radius: 12px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.15s;
+    background: #fff;
+    color: var(--text);
+  }
+  .frac-box.sel { background: var(--purple-light); border-color: var(--purple) !important; color: var(--purple); }
+  .frac-box.ok  { background: var(--green-light);  border-color: var(--green) !important;  color: #1A6644; }
+  .frac-box.err { background: var(--red-light);    border-color: var(--red) !important;    color: var(--red); }
+  .frac-line { width: 72px; height: 3px; border-radius: 3px; background: var(--text); }
+  .frac-label { font-size: 11px; font-weight: 800; color: var(--muted); }
+  .frac-preview {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    font-style: italic;
+  }
+  .frac-fbk {
+    font-size: 13px;
+    font-weight: 800;
+    padding: 6px 10px;
+    border-radius: 8px;
+    display: none;
+  }
+  .frac-fbk.ok { background: var(--green-light); color: #1A6644; display: block; }
+  .frac-fbk.ko { background: var(--red-light);   color: #9B1B24; display: block; }
+
+  .np-ctx-label {
+    font-family: 'Fredoka One', cursive;
+    font-size: 15px;
+    color: var(--purple);
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  /* END SCREEN */
+  #end {
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+  #end .trophy { font-size: 80px; margin-bottom: 8px; display: block; }
+  #end h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 32px;
+    color: var(--purple);
+    margin-bottom: 8px;
+  }
+  #end .stars { font-size: 36px; margin-bottom: 8px; }
+  #end .final-score {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  #end .final-msg {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+
+  /* ANIMATIONS */
+  @keyframes popIn {
+    0%   { transform: scale(0.88); opacity: 0; }
+    70%  { transform: scale(1.04); }
+    100% { transform: scale(1);    opacity: 1; }
+  }
+  .card { animation: popIn 0.25s ease both; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const EMOJIS = {
+  coches:   ['🚗','🔴','⬛','🟡'],
+  frutas:   ['🍎','🍌','🍇','🍊'],
+  animales: ['🐱','🐶','🐸','🐰'],
+  juguetes: ['🎈','🎲','🎸','🪀'],
+  planetas: ['🌍','🪐','⭐','🌙'],
+  peces:    ['🐟','🐠','🐡','🦈'],
+  flores:   ['🌸','🌻','🌹','🌼'],
+  insectos: ['🐝','🦋','🐛','🐞'],
+  aves:     ['🐦','🦜','🦆','🦉'],
+  comida:   ['🍕','🍔','🌮','🍣'],
+};
+const COLS     = ['#7C6FCD','#2CB67D','#F4A527','#E84855','#378ADD','#D4537E','#639922','#D85A30'];
+const COL_BG   = ['#EDE9FF','#DCFAED','#FFF3D0','#FFEAEA','#E6F1FB','#FBEAF0','#EAF3DE','#FAECE7'];
+const COL_DARK = ['#5448A3','#1A8A58','#B87A10','#A32D2D','#185FA5','#99355A','#3B6D11','#993C1D'];
+
+const EX = [
+  { cat:'coches',   items:['Blancos','Rojos','Negros','Amarillos'],       counts:[10,5,20,30],    ask:[0,1] },
+  { cat:'frutas',   items:['Manzanas','Plátanos','Uvas','Naranjas'],      counts:[8,12,6,4],      ask:[2] },
+  { cat:'animales', items:['Gatos','Perros','Ranas','Conejos'],           counts:[15,10,5,20],    ask:[0,2] },
+  { cat:'juguetes', items:['Globos','Dados','Guitarras','Yoyós'],         counts:[25,15,10,50],   ask:[1,3] },
+  { cat:'planetas', items:['Tierras','Saturno','Estrellas','Lunas'],      counts:[3,7,12,8],      ask:[0,1,2] },
+  { cat:'peces',    items:['Azules','Payaso','Globo','Tiburón'],          counts:[40,35,15,10],   ask:[2,3] },
+  { cat:'flores',   items:['Rosas','Girasoles','Rojas','Blancas'],        counts:[22,18,35,25],   ask:[0,1] },
+  { cat:'insectos', items:['Abejas','Mariposas','Orugas','Mariquitas'],   counts:[60,45,30,25],   ask:[1,2,3] },
+  { cat:'aves',     items:['Azules','Loros','Patos','Lechuzas'],          counts:[50,30,70,20],   ask:[0,3] },
+  { cat:'comida',   items:['Pizzas','Hamburguesas','Tacos','Sushis'],     counts:[120,85,95,60],  ask:[0,1,2,3] },
+];
+
+let ex = 0, phase = 0, score = 0;
+let phRes = [null, null, null];
+let npVal = '', npTarget = null;
+let barInputs = {};
+let fracVals = {};
+
+const tot = e => e.counts.reduce((a,b) => a+b, 0);
+const $ = id => document.getElementById(id);
+
+function render() {
+  const app = document.getElementById('app');
+  if (ex >= EX.length) { showEnd(); return; }
+  const e = EX[ex], em = EMOJIS[e.cat];
+  npVal = ''; npTarget = null; barInputs = {}; fracVals = {};
+
+  app.innerHTML = `
+    <div class="topbar">
+      <div class="ex-info">Ejercicio ${ex+1}/10 · Fase ${phase+1}/3</div>
+      <div class="score-badge">⭐ ${score}</div>
+    </div>
+    <div class="phases">
+      ${[0,1,2].map(i => `<div class="ph ${i<phase?(phRes[i]?'done':'fail'):i===phase?'active':''}"></div>`).join('')}
+    </div>
+    ${phase===0 ? renderP1(e,em) : phase===1 ? renderP2(e,em) : renderP3(e,em)}
+  `;
+  bindEvents(e, em);
+}
+
+function renderNumpad() {
+  return `
+    <div class="numpad">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="nk" data-n="${n}">${n}</button>`).join('')}
+      <button class="nk del" data-n="del">⌫</button>
+      <button class="nk zero" data-n="0">0</button>
+    </div>`;
+}
+
+function renderP1(e, em) {
+  return `<div class="card">
+    <div class="phase-title">🔢 Fase 1 — Suma el total</div>
+    <div class="phase-desc">Hay ${e.items.length} tipos de <strong>${e.cat}</strong>. ¿Cuántos hay en total?</div>
+    <div class="chips">
+      ${e.items.map((it,i)=>`
+        <div class="chip" style="background:${COL_BG[i]};color:${COL_DARK[i]};border-color:${COLS[i]};">
+          ${em[i]} ${it}: ${e.counts[i]}
+        </div>`).join('')}
+    </div>
+    <div class="np-display" id="npd">?</div>
+    ${renderNumpad()}
+    <button class="btn btn-check" id="c1">Comprobar</button>
+    <button class="btn btn-next" id="n1">Siguiente fase →</button>
+    <div class="fbk" id="f1"></div>
+  </div>`;
+}
+
+function renderP2(e, em) {
+  const maxC = Math.max(...e.counts);
+  const rows = e.items.map((it,i) => `
+    <div class="bar-item">
+      <div class="bar-emoji">${em[i]}</div>
+      <div class="bar-right">
+        <div class="bar-meta">
+          <span class="bar-name">${it}</span>
+          <span class="bar-target" style="color:${COLS[i]};">→ ${e.counts[i]}</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill" id="bf${i}" style="width:0%;background:${COLS[i]};">
+            <span class="bar-fill-val" id="bfv${i}"></span>
+          </div>
+        </div>
+        <div class="bar-tap" id="bt${i}" data-i="${i}">Toca para escribir</div>
+      </div>
+    </div>`).join('');
+
+  return `<div class="card">
+    <div class="phase-title">📊 Fase 2 — Construye la gráfica</div>
+    <div class="phase-desc">Toca cada tipo y escribe su número. ¡La barra tiene que llegar a la marca!</div>
+    <div class="bar-list">${rows}</div>
+    <div id="bar-np-wrap" style="display:none;">
+      <div class="bar-np-header" id="bar-np-label"></div>
+      <div class="np-display" id="npd">?</div>
+      ${renderNumpad()}
+    </div>
+    <button class="btn btn-check" id="c2">Comprobar</button>
+    <button class="btn btn-next" id="n2" style="display:none;">Siguiente fase →</button>
+    <div class="fbk" id="f2"></div>
+  </div>`;
+}
+
+function renderP3(e, em) {
+  const t = tot(e);
+  const chips = e.items.map((it,i)=>`
+    <div class="chip" style="background:${COL_BG[i]};color:${COL_DARK[i]};border-color:${COLS[i]};">
+      ${em[i]} ${it}: ${e.counts[i]}
+    </div>`).join('');
+
+  const fracs = e.ask.map((idx,j) => `
+    <div class="frac-block" style="background:${COL_BG[idx]};border-color:${COLS[idx]};">
+      <div class="frac-q">${em[idx]} ¿Cuántos <strong style="color:${COL_DARK[idx]};">${e.items[idx]}</strong> hay del total de ${e.cat}?</div>
+      <div class="frac-inputs">
+        <div class="frac-field">
+          <div class="frac-label">cantidad</div>
+          <div class="frac-box" id="fn${j}" data-j="${j}" data-part="num" style="border-color:${COLS[idx]};">?</div>
+          <div class="frac-line" style="background:${COLS[idx]};"></div>
+          <div class="frac-box" id="fd${j}" data-j="${j}" data-part="den" style="border-color:${COLS[idx]};">?</div>
+          <div class="frac-label">total</div>
+        </div>
+        <div style="font-size:13px;font-weight:800;color:#7A7A9D;">de</div>
+        <div class="frac-preview" id="fp${j}">escribe arriba<br>y abajo</div>
+      </div>
+      <div class="frac-fbk" id="fq${j}"></div>
+    </div>`).join('');
+
+  return `<div class="card">
+    <div class="phase-title">➗ Fase 3 — ¿De cuántos hay?</div>
+    <div class="sum-header">
+      <div class="chips">${chips}</div>
+      <div class="sum-total">Total de ${e.cat}: <span>${t}</span></div>
+    </div>
+    ${fracs}
+    <div id="frac-np-wrap" style="display:none;">
+      <div class="np-ctx-label" id="frac-np-label"></div>
+      <div class="np-display" id="npd">?</div>
+      ${renderNumpad()}
+    </div>
+    <button class="btn btn-check" id="c3">Comprobar</button>
+    <button class="btn btn-next" id="n3" style="display:none;">${ex<EX.length-1?'Siguiente ejercicio →':'¡Terminar! 🎉'}</button>
+    <div class="fbk" id="f3"></div>
+  </div>`;
+}
+
+function setNpDisplay(val) {
+  const d = $('npd');
+  if (d) d.textContent = val || '?';
+}
+
+function npPress(n) {
+  if (n === 'del') { npVal = npVal.slice(0,-1); }
+  else { if (npVal.length >= 5) return; npVal += n; }
+  setNpDisplay(npVal);
+
+  if (npTarget === 'p1') return;
+
+  if (npTarget && npTarget.startsWith('bar')) {
+    const i = parseInt(npTarget.slice(3));
+    const e = EX[ex];
+    const maxC = Math.max(...e.counts);
+    const v = parseInt(npVal) || 0;
+    barInputs[i] = npVal;
+    const bt = $('bt'+i);
+    if (bt) bt.textContent = npVal || 'Toca para escribir';
+    const bf = $('bf'+i);
+    const bfv = $('bfv'+i);
+    if (bf) {
+      const pct = Math.min(100, Math.round(v/maxC*100));
+      bf.style.width = pct + '%';
+      bf.style.background = v === e.counts[i] ? '#2CB67D' : COLS[i];
+    }
+    if (bfv) bfv.textContent = v > 0 ? v : '';
+    if (bt) {
+      bt.classList.toggle('correct', v === e.counts[i]);
+    }
+    return;
+  }
+
+  if (npTarget && npTarget.startsWith('frac_')) {
+    const parts = npTarget.split('_');
+    const j = parseInt(parts[1]), part = parts[2];
+    if (!fracVals[j]) fracVals[j] = {};
+    fracVals[j][part] = npVal;
+    const box = $(part === 'num' ? 'fn'+j : 'fd'+j);
+    if (box) box.textContent = npVal || '?';
+    const fp = $('fp'+j);
+    if (fp) {
+      const num = fracVals[j].num || '?';
+      const den = fracVals[j].den || '?';
+      fp.textContent = num + '\nde\n' + den;
+      fp.innerHTML = `<strong>${num}</strong><br><span style="font-size:11px;">de</span><br><strong>${den}</strong>`;
+    }
+  }
+}
+
+function bindEvents(e, em) {
+  document.querySelectorAll('.nk').forEach(btn => {
+    btn.addEventListener('click', () => npPress(btn.dataset.n));
+  });
+
+  if (phase === 0) {
+    npTarget = 'p1';
+    $('c1').onclick = () => {
+      const v = parseInt(npVal) || 0;
+      const t = tot(e);
+      const f = $('f1');
+      if (v === t) {
+        f.className = 'fbk ok';
+        f.textContent = '✓ ¡Correcto! ' + t + ' en total 🎉';
+        score += 10; phRes[0] = true;
+        $('n1').style.display = 'block';
+        $('c1').disabled = true;
+      } else {
+        f.className = 'fbk ko';
+        f.textContent = 'No es correcto. Suma todos los números uno por uno.';
+      }
+    };
+    $('n1').onclick = () => { phase = 1; render(); };
+  }
+
+  if (phase === 1) {
+    document.querySelectorAll('[id^="bt"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const i = parseInt(btn.dataset.i);
+        npTarget = 'bar' + i;
+        npVal = barInputs[i] || '';
+        const wrap = $('bar-np-wrap');
+        if (wrap) wrap.style.display = 'block';
+        const lbl = $('bar-np-label');
+        if (lbl) lbl.textContent = em[i] + ' ' + e.items[i];
+        setNpDisplay(npVal);
+        document.querySelectorAll('[id^="bt"]').forEach(b => b.classList.remove('active-sel'));
+        btn.classList.add('active-sel');
+      });
+    });
+
+    $('c2').onclick = () => {
+      let ok = true;
+      e.items.forEach((_,i) => {
+        const v = parseInt(barInputs[i]) || 0;
+        if (v !== e.counts[i]) ok = false;
+      });
+      const f = $('f2'), n2 = $('n2');
+      if (ok) {
+        f.className = 'fbk ok'; f.textContent = '✓ ¡Gráfica perfecta! 📊';
+        score += 10; phRes[1] = true;
+      } else {
+        f.className = 'fbk ko';
+        f.textContent = 'Alguna barra no llega a su marca. Sin puntos esta vez, pero ¡sigue adelante!';
+        phRes[1] = false;
+      }
+      n2.style.display = 'block';
+      $('c2').disabled = true;
+    };
+    $('n2').onclick = () => { phase = 2; render(); };
+  }
+
+  if (phase === 2) {
+    const t = tot(e);
+    document.querySelectorAll('.frac-box').forEach(box => {
+      box.addEventListener('click', () => {
+        const j = parseInt(box.dataset.j), part = box.dataset.part;
+        npTarget = 'frac_' + j + '_' + part;
+        if (!fracVals[j]) fracVals[j] = {};
+        npVal = fracVals[j][part] || '';
+        const wrap = $('frac-np-wrap');
+        if (wrap) wrap.style.display = 'block';
+        const lbl = $('frac-np-label');
+        const idx = e.ask[j];
+        if (lbl) lbl.textContent = part === 'num' ? '¿Cuántos ' + e.items[idx] + ' hay?' : '¿Cuántos ' + e.cat + ' en total?';
+        setNpDisplay(npVal);
+        document.querySelectorAll('.frac-box').forEach(b => b.classList.remove('sel'));
+        box.classList.add('sel');
+      });
+    });
+
+    $('c3').onclick = () => {
+      let allOk = true;
+      e.ask.forEach((idx, j) => {
+        if (!fracVals[j]) fracVals[j] = {};
+        const num = parseInt(fracVals[j].num) || 0;
+        const den = parseInt(fracVals[j].den) || 0;
+        const fq = $('fq'+j);
+        const fn = $('fn'+j), fd = $('fd'+j);
+        const numOk = num === e.counts[idx];
+        const denOk = den === t;
+        if (numOk && denOk) {
+          if (fq) { fq.className = 'frac-fbk ok'; fq.textContent = '✓ ' + e.counts[idx] + ' de ' + t + ': ¡correcto!'; }
+          if (fn) { fn.className = 'frac-box ok'; }
+          if (fd) { fd.className = 'frac-box ok'; }
+        } else {
+          if (fq) { fq.className = 'frac-fbk ko'; fq.textContent = 'Arriba: ' + e.counts[idx] + '  ·  Abajo: ' + t; }
+          if (fn) { fn.className = 'frac-box' + (numOk ? ' ok' : ' err'); }
+          if (fd) { fd.className = 'frac-box' + (denOk ? ' ok' : ' err'); }
+          allOk = false;
+        }
+      });
+      const f = $('f3'), n3 = $('n3');
+      if (allOk) {
+        f.className = 'fbk ok'; f.textContent = '✓ ¡Todo correcto! 🎉';
+        score += 10; phRes[2] = true;
+      } else {
+        f.className = 'fbk ko'; f.textContent = 'Revisa las casillas rojas e inténtalo de nuevo.';
+        phRes[2] = false;
+      }
+      n3.style.display = 'block';
+      $('c3').disabled = true;
+    };
+    $('n3').onclick = () => { ex++; phase = 0; phRes = [null,null,null]; render(); };
+  }
+}
+
+function showEnd() {
+  const stars = score >= 270 ? 3 : score >= 180 ? 2 : 1;
+  const msg = score >= 270
+    ? '¡Eres un genio de la estadística! 🧠'
+    : score >= 180 ? '¡Muy bien hecho! Sigue practicando.' : '¡Buen intento! Vuelve a intentarlo.';
+  document.getElementById('app').innerHTML = `
+    <div id="end">
+      <span class="trophy">🏆</span>
+      <h2>¡Has terminado!</h2>
+      <div class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+      <div class="final-score">${score} de 300 puntos</div>
+      <div class="final-msg">${msg}</div>
+      <button class="btn btn-check" onclick="ex=0;phase=0;score=0;phRes=[null,null,null];render()">Jugar otra vez</button>
+    </div>`;
+}
+
+render();
+</script>
+</body>
+</html>
